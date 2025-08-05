@@ -11,6 +11,7 @@ function HomePage() {
     const [showInfo, setShowInfo] = useState(false);
     const location = useLocation();
     const [tone, setTone] = useState("compassionate");
+    const [prompts, setPrompts] = useState([]);
 
     const resetEntry = () => {
         console.log('Resetting journal entry and reflection');
@@ -79,6 +80,23 @@ function HomePage() {
         }
     };
 
+    const handleGeneratePrompts = async () => {
+        try {
+            const res = await fetch('https://journal-prompt-generator-microservice.onrender.com/prompts',
+                {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                }
+            );
+            const text = await res.text();
+            const promptArray = text.split('\n').filter(prompt => prompt.trim() !== '');
+            setPrompts(promptArray);
+        } catch (error) {
+            console.error('Error fetching prompts:', error);
+            alert('An error occurred while fetching prompts.');
+        }
+    };
+
     return (
         <div className='home-page'>
             <h1>Journal Space</h1>              
@@ -93,6 +111,18 @@ function HomePage() {
                             <option value="philosophical">Philosophical</option>
                             <option value="humorous">Humorous</option>
                         </select>
+
+                        <button onClick={handleGeneratePrompts}>Generate Prompts</button>
+                        {prompts.length > 0 && (
+                            <div className="prompt-box">
+                                <h3>Suggested Journal Prompts:</h3>
+                                <ul>
+                                    {prompts.map((prompt, index) => (
+                                        <li key={index}>{prompt.trim()}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
 
                         <textarea
                             value={entry}
